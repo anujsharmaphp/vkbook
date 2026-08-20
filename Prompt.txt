@@ -1,0 +1,1820 @@
+Yes. Since you want Claude to **actually build the application**, not merely generate a UI mockup, the prompt should force it to behave as a **UI architect + product designer + backend architect + senior React/Python engineer + DevOps/SRE engineer**.
+
+I would also make one important change: build the first version as a **production-grade sports-exchange simulator/paper-betting platform**, with simulated balances and no real-money deposits, withdrawals, or wagering. That lets you develop and test the complete architecture—markets, back/lay, liquidity, odds, bet slip, settlement, WebSockets, wallet ledger, admin, etc.—without embedding real-money gambling functionality.
+
+# MASTER PROMPT — BUILD A PRODUCTION-GRADE SPORTS EXCHANGE PLATFORM
+
+## ROLE
+
+You are acting simultaneously as:
+
+* World-class Product Architect
+* Senior UI/UX Architect
+* Design System Architect
+* React/TypeScript Architect
+* Python/FastAPI Architect
+* Distributed Systems Architect
+* Real-Time Systems Engineer
+* PostgreSQL Database Architect
+* Event-Driven Architecture Expert
+* AWS Cloud Architect
+* DevOps/SRE Engineer
+* Security Engineer
+* QA/Automation Engineer
+* Technical Product Manager
+
+You have extensive experience building high-scale, real-time financial/trading-style applications.
+
+Your task is to design and implement a **production-grade sports exchange simulator / paper-betting platform** inspired by the supplied VKRBook247 screenshots.
+
+The application must be fully functional end-to-end using **simulated/paper balances only**.
+
+Do NOT implement real-money gambling, real-money deposits, real-money withdrawals, payment processing for wagering, or mechanisms intended to facilitate unlawful gambling.
+
+The goal is to reproduce the **technical complexity and user experience of a professional sports exchange platform** while keeping all monetary activity simulated.
+
+---
+
+# 1. PRIMARY OBJECTIVE
+
+Build a complete full-stack application with:
+
+### Frontend
+
+* React
+* TypeScript
+* Modern component architecture
+* Responsive desktop/tablet/mobile UI
+* Production-grade state management
+* Real-time WebSocket updates
+* Professional sports-exchange UX
+* Reusable design system
+
+### Backend
+
+* Python
+* FastAPI
+* PostgreSQL
+* Redis
+* WebSockets
+* Event-driven architecture
+* Background workers
+* Strong domain model
+* Transaction-safe simulated wallet ledger
+* Market engine
+* Matching engine
+* Bet lifecycle
+* Settlement engine
+* Admin APIs
+* Audit logging
+
+### Infrastructure
+
+Design the application so that it can eventually run on AWS using:
+
+* Docker
+* Kubernetes/ECS-compatible architecture
+* PostgreSQL/RDS
+* Redis/ElastiCache
+* S3
+* CloudWatch
+* Prometheus
+* Grafana
+* CI/CD
+* Infrastructure as Code
+
+For the initial local implementation, Docker Compose is sufficient.
+
+---
+
+# 2. REFERENCE UI
+
+Use the supplied VKRBook247 screenshots as UX references.
+
+The main screen contains:
+
+```text
+┌──────────────────────────────────────────────────────────────────────┐
+│ LOGO     HOME      SPORTS      CASINO       DATE/TIME    SEARCH      │
+├──────────────┬───────────────────────────────────────┬───────────────┤
+│              │                                       │               │
+│ SPORTS MENU  │          PROMOTIONAL BANNERS          │   BET SLIP    │
+│              │                                       │               │
+│ Live Casino  ├───────────────────────────────────────┤   MY BETS     │
+│ Cricket      │                                       │               │
+│ Football     │             LIVE EVENTS               │               │
+│ Tennis       │                                       │               │
+│ Rugby        │                                       │               │
+│ Basketball   │                                       │               │
+│ Golf         │                                       │               │
+│ Horse Racing │                                       │               │
+│              │                                       │               │
+└──────────────┴───────────────────────────────────────┴───────────────┘
+```
+
+The match screen contains:
+
+* Breadcrumb
+* Event header
+* Match status
+* Market sections
+* Match Odds
+* Back prices
+* Lay prices
+* Available liquidity
+* Bookmaker market
+* Suspended markets
+* Fancy markets
+* Player markets
+* Over markets
+* Wicket markets
+* Persistent bet slip
+* My Bets
+
+Do not blindly copy branding or copyrighted assets.
+
+Use an original professional visual identity.
+
+---
+
+# 3. DESIGN PHILOSOPHY
+
+The UI must feel like a combination of:
+
+* Bloomberg terminal
+* modern sports application
+* professional trading terminal
+* premium fintech dashboard
+
+It must NOT look like a cheap betting template.
+
+Prioritize:
+
+* Information density
+* Fast scanning
+* Clear hierarchy
+* Excellent typography
+* Precise spacing
+* Strong contrast
+* Clear Back/Lay distinction
+* Real-time state visibility
+* Minimal unnecessary animation
+* Excellent loading states
+* Excellent empty states
+* Excellent error states
+
+The user should understand:
+
+```text
+SPORT
+   ↓
+COMPETITION
+   ↓
+EVENT
+   ↓
+MARKET
+   ↓
+SELECTION
+   ↓
+BACK/LAY
+   ↓
+BET SLIP
+   ↓
+PAPER BET
+   ↓
+OPEN BET
+   ↓
+SETTLEMENT
+```
+
+without needing instructions.
+
+---
+
+# 4. IMPORTANT DOMAIN MODEL
+
+Implement the following domain hierarchy:
+
+```text
+Sport
+   ↓
+Competition
+   ↓
+Event
+   ↓
+Market
+   ↓
+Selection
+   ↓
+Price
+```
+
+Example:
+
+```text
+Sport
+  Cricket
+
+Competition
+  Test Matches
+
+Event
+  England vs Pakistan
+
+Market
+  Match Odds
+
+Selections
+  England
+  Pakistan
+  Draw
+```
+
+Another market:
+
+```text
+Market
+  Joe Root Runs
+
+Selections
+  Yes
+  No
+```
+
+Another:
+
+```text
+Market
+  England 1st Innings Runs
+
+Selections
+  Over
+  Under
+```
+
+Do not hard-code individual sports into the frontend.
+
+Markets must be data-driven.
+
+---
+
+# 5. BACK / LAY MODEL
+
+Implement paper exchange functionality.
+
+### BACK
+
+Represents a paper position FOR a selection.
+
+### LAY
+
+Represents a paper position AGAINST a selection.
+
+Each price level must contain:
+
+```text
+price
+available_size
+side
+selection_id
+market_id
+timestamp
+```
+
+Example:
+
+```json
+{
+  "side": "BACK",
+  "price": 1.12,
+  "available_size": 334337,
+  "selection_id": "england"
+}
+```
+
+The UI must visually distinguish:
+
+```text
+BACK
+blue/light-blue
+
+LAY
+pink/light-pink
+```
+
+Do not use hard-coded odds.
+
+All odds must originate from backend market state.
+
+---
+
+# 6. MARKET LIQUIDITY
+
+Implement a simulated order book.
+
+Example:
+
+```text
+BACK
+
+1.10    500000
+1.11    500000
+1.12    334337
+
+LAY
+
+1.13    228485
+1.14    471242
+1.15    448630
+```
+
+The market engine must support:
+
+* multiple price levels
+* available size
+* order placement
+* partial matching
+* complete matching
+* order cancellation
+* market suspension
+* market reopening
+* price updates
+
+All of this should work using simulated/paper money.
+
+---
+
+# 7. REAL-TIME ENGINE
+
+This is one of the most important requirements.
+
+The application must NOT rely on browser polling for live market updates.
+
+Use:
+
+```text
+Market Engine
+      ↓
+Event Bus
+      ↓
+Redis / Redis Streams
+      ↓
+WebSocket Gateway
+      ↓
+React Client
+```
+
+The frontend should receive events such as:
+
+```json
+{
+  "event": "ODDS_UPDATED",
+  "market_id": "123",
+  "selection_id": "england",
+  "side": "BACK",
+  "price": 1.12,
+  "available_size": 334337
+}
+```
+
+Other events:
+
+```text
+MARKET_CREATED
+MARKET_UPDATED
+MARKET_SUSPENDED
+MARKET_REOPENED
+ODDS_UPDATED
+ORDER_PLACED
+ORDER_MATCHED
+ORDER_PARTIALLY_MATCHED
+ORDER_CANCELLED
+BET_ACCEPTED
+BET_REJECTED
+BET_SETTLED
+BALANCE_UPDATED
+EVENT_STATUS_CHANGED
+```
+
+The UI must update immediately when WebSocket events arrive.
+
+---
+
+# 8. SIMULATED SPORTS DATA
+
+Do not depend on an external sports provider for the first implementation.
+
+Create a configurable simulated sports-data service.
+
+It should simulate:
+
+* cricket matches
+* football matches
+* tennis matches
+* match state
+* scores
+* player statistics
+* market states
+* odds changes
+* liquidity changes
+* market suspension
+* market reopening
+
+Create a background simulation engine.
+
+Example:
+
+```text
+England 157/9
+      ↓
+ball event
+      ↓
+score changes
+      ↓
+market engine reacts
+      ↓
+odds change
+      ↓
+WebSocket broadcast
+      ↓
+frontend updates
+```
+
+Make the simulator deterministic/testable where possible.
+
+---
+
+# 9. FRONTEND ARCHITECTURE
+
+Use:
+
+```text
+React
+TypeScript
+Vite
+React Router
+TanStack Query
+Zustand
+WebSocket client
+React Hook Form
+Zod
+```
+
+Use a clean structure:
+
+```text
+src/
+  app/
+  components/
+  features/
+    auth/
+    sports/
+    events/
+    markets/
+    betslip/
+    bets/
+    wallet/
+    profile/
+    admin/
+  hooks/
+  services/
+  store/
+  types/
+  utils/
+  pages/
+  layouts/
+  design-system/
+```
+
+Avoid a giant App.tsx.
+
+Use feature-based architecture.
+
+---
+
+# 10. FRONTEND PAGES
+
+Implement at minimum:
+
+## Public
+
+* Login
+* Register
+* Landing page
+
+## Authenticated
+
+* Home
+* Sports
+* Cricket
+* Football
+* Tennis
+* Event Details
+* Market Details
+* Bet Slip
+* My Bets
+* Open Bets
+* Settled Bets
+* Paper Wallet
+* Transaction History
+* Profile
+* Notifications
+
+## Admin
+
+* Admin Dashboard
+* Users
+* Sports
+* Competitions
+* Events
+* Markets
+* Selections
+* Odds
+* Liquidity
+* Orders
+* Bets
+* Settlement
+* Wallet Ledger
+* Audit Logs
+* Simulator Control
+
+---
+
+# 11. HOME SCREEN
+
+Create a 3-column layout:
+
+```text
+LEFT
+Sports Navigation
+
+CENTER
+Promotions
+Live Events
+Upcoming Events
+
+RIGHT
+Bet Slip
+My Bets
+```
+
+The right panel must remain persistent on desktop.
+
+On mobile:
+
+```text
+Main Content
+
+Bottom Sticky Bet Slip
+```
+
+The design must be responsive.
+
+---
+
+# 12. EVENT SCREEN
+
+Build a professional event screen similar in information architecture to the reference.
+
+Header:
+
+```text
+Cricket / Test Matches / England vs Pakistan
+```
+
+Then:
+
+```text
+Genie/Featured Markets
+Match Odds
+Match Odds (Bookmaker Simulation)
+Fancy
+Player Markets
+Over Markets
+Wicket Markets
+Other Markets
+```
+
+Every market must be collapsible.
+
+Each market should have:
+
+* title
+* status
+* information icon
+* collapse/expand
+* live indicator
+* prices
+* available liquidity
+* market controls
+
+---
+
+# 13. BET SLIP
+
+The Bet Slip is a core feature.
+
+When the user clicks a price:
+
+```text
+Market
+Selection
+Side
+Price
+Available Size
+```
+
+must be added to the bet slip.
+
+The bet slip should show:
+
+```text
+England
+
+BACK @ 1.12
+
+Stake
+[       ]
+
+Potential Return
+₹ XXX
+
+Potential Profit
+₹ XXX
+
+[PLACE PAPER BET]
+```
+
+For LAY:
+
+Show:
+
+```text
+Lay Price
+Stake
+Liability
+Potential Profit
+```
+
+Calculate all values correctly.
+
+Do not trust frontend calculations on the backend.
+
+The backend must independently validate/recalculate the order.
+
+---
+
+# 14. ORDER / BET LIFECYCLE
+
+Implement:
+
+```text
+CREATED
+PENDING
+ACCEPTED
+OPEN
+PARTIALLY_MATCHED
+MATCHED
+SETTLED
+VOID
+CANCELLED
+REJECTED
+```
+
+Use an explicit state machine.
+
+Never scatter status transitions throughout random controller code.
+
+Create a dedicated domain service.
+
+---
+
+# 15. PAPER WALLET
+
+Create a simulated wallet.
+
+New users receive configurable demo credits.
+
+Example:
+
+```text
+Available Balance
+₹100,000
+
+Exposure
+₹5,000
+
+Available to Bet
+₹95,000
+```
+
+Implement a proper ledger.
+
+Tables/entities:
+
+```text
+wallet
+ledger_entry
+order
+bet
+settlement
+```
+
+Every balance change must have an auditable ledger entry.
+
+Never simply update a balance without recording the transaction.
+
+Use database transactions and row/version locking where appropriate.
+
+---
+
+# 16. DATABASE
+
+Use PostgreSQL.
+
+Create migrations using Alembic.
+
+Core tables:
+
+```text
+users
+roles
+permissions
+
+sports
+competitions
+events
+
+markets
+market_types
+selections
+
+orders
+order_matches
+bets
+
+wallets
+ledger_entries
+
+settlements
+
+notifications
+
+audit_logs
+
+promotions
+
+simulator_events
+```
+
+Use:
+
+* UUID primary keys
+* created_at
+* updated_at
+* appropriate indexes
+* foreign keys
+* unique constraints
+* optimistic/pessimistic locking where necessary
+
+Do not over-normalize real-time data.
+
+Clearly separate:
+
+```text
+source-of-truth relational data
+```
+
+from:
+
+```text
+hot/cache/real-time state
+```
+
+---
+
+# 17. BACKEND ARCHITECTURE
+
+Use FastAPI.
+
+Structure:
+
+```text
+backend/
+  app/
+    api/
+    core/
+    config/
+    domain/
+    models/
+    repositories/
+    services/
+    engines/
+      market_engine/
+      matching_engine/
+      settlement_engine/
+      wallet_engine/
+      simulation_engine/
+    websocket/
+    workers/
+    events/
+    schemas/
+    security/
+    observability/
+```
+
+Use dependency injection.
+
+Keep business logic OUT of route handlers.
+
+Bad:
+
+```python
+@app.post("/bet")
+def place_bet():
+    # 200 lines of business logic
+```
+
+Good:
+
+```python
+@app.post("/bets")
+async def place_bet(
+    command: PlaceBetCommand,
+    service: BetService = Depends(...)
+):
+    return await service.place_bet(command)
+```
+
+---
+
+# 18. API DESIGN
+
+Use REST APIs for normal operations.
+
+Example:
+
+```text
+POST   /api/v1/auth/login
+GET    /api/v1/sports
+GET    /api/v1/events
+GET    /api/v1/events/{event_id}
+GET    /api/v1/markets/{market_id}
+GET    /api/v1/markets/{market_id}/order-book
+
+POST   /api/v1/orders
+DELETE /api/v1/orders/{order_id}
+
+GET    /api/v1/bets
+GET    /api/v1/bets/{bet_id}
+
+GET    /api/v1/wallet
+GET    /api/v1/wallet/ledger
+
+GET    /api/v1/me
+```
+
+Admin:
+
+```text
+/api/v1/admin/users
+/api/v1/admin/events
+/api/v1/admin/markets
+/api/v1/admin/orders
+/api/v1/admin/settlements
+/api/v1/admin/simulator
+```
+
+Use OpenAPI documentation automatically generated by FastAPI.
+
+---
+
+# 19. WEBSOCKET API
+
+Create:
+
+```text
+/ws/events/{event_id}
+/ws/markets/{market_id}
+/ws/user
+```
+
+The frontend should subscribe/unsubscribe dynamically.
+
+Implement:
+
+* reconnect
+* exponential backoff
+* heartbeat
+* connection state
+* duplicate-event protection
+* event ordering
+* graceful fallback
+* stale-data detection
+
+---
+
+# 20. REDIS
+
+Use Redis for:
+
+* hot market state
+* WebSocket fanout
+* caching
+* rate limiting
+* short-lived session/state
+* event distribution where appropriate
+
+Do not use Redis as the permanent financial source of truth.
+
+PostgreSQL remains authoritative for financial records.
+
+---
+
+# 21. IDEMPOTENCY
+
+This is mandatory.
+
+For operations such as:
+
+```text
+place order
+cancel order
+settle bet
+wallet transaction
+```
+
+support idempotency keys.
+
+Example:
+
+```text
+Idempotency-Key: UUID
+```
+
+If the same request arrives twice because of a network retry, the operation must not execute twice.
+
+---
+
+# 22. CONCURRENCY
+
+Assume two users attempt to consume the same liquidity simultaneously.
+
+The backend must handle this safely.
+
+Example:
+
+```text
+Available liquidity = ₹1,000
+
+User A attempts ₹800
+User B attempts ₹700
+```
+
+Do not allow the system to accidentally consume:
+
+```text
+₹1,500
+```
+
+from:
+
+```text
+₹1,000
+```
+
+Use appropriate transaction boundaries, locking, versioning, or atomic matching mechanisms.
+
+Write automated concurrency tests.
+
+---
+
+# 23. SECURITY
+
+Implement:
+
+* JWT authentication
+* refresh tokens
+* password hashing
+* RBAC
+* API authorization
+* rate limiting
+* request validation
+* CORS
+* secure headers
+* audit logs
+* input sanitization
+* SQL injection protection
+* WebSocket authorization
+* admin authorization
+* secret management
+* structured security logging
+
+Never trust:
+
+* user balance
+* odds
+* available liquidity
+* profit
+* liability
+* settlement values
+
+sent by the browser.
+
+The server is authoritative.
+
+---
+
+# 24. OBSERVABILITY
+
+Implement production-grade observability.
+
+Every request should have:
+
+```text
+request_id
+correlation_id
+user_id where appropriate
+```
+
+Logs should be structured JSON.
+
+Metrics:
+
+```text
+API latency
+API errors
+WebSocket connections
+WebSocket disconnects
+market updates/sec
+orders/sec
+matched orders/sec
+settlement latency
+database latency
+Redis latency
+worker queue depth
+```
+
+Expose Prometheus-compatible metrics.
+
+Create Grafana dashboard definitions.
+
+---
+
+# 25. ERROR HANDLING
+
+Create consistent API errors:
+
+```json
+{
+  "error": {
+    "code": "MARKET_SUSPENDED",
+    "message": "The market is currently suspended.",
+    "request_id": "..."
+  }
+}
+```
+
+Frontend should display meaningful errors.
+
+Examples:
+
+```text
+Market suspended
+Price changed
+Insufficient paper balance
+Order no longer available
+Connection lost
+Session expired
+Server unavailable
+```
+
+Do not expose internal stack traces.
+
+---
+
+# 26. TESTING
+
+This is mandatory.
+
+### Backend
+
+Use:
+
+```text
+pytest
+pytest-asyncio
+httpx
+```
+
+Test:
+
+* authentication
+* authorization
+* market creation
+* odds updates
+* order placement
+* partial matching
+* complete matching
+* cancellation
+* suspension
+* wallet
+* ledger
+* settlement
+* concurrency
+* idempotency
+
+### Frontend
+
+Use:
+
+```text
+Vitest
+React Testing Library
+Playwright
+```
+
+Test:
+
+```text
+Login
+Navigate to sport
+Open event
+Select BACK
+Select LAY
+Bet Slip update
+Stake calculation
+Place paper bet
+My Bets
+WebSocket updates
+Market suspension
+Reconnect
+```
+
+---
+
+# 27. ADMIN PANEL
+
+The admin must be powerful but clean.
+
+Dashboard:
+
+```text
+Active Users
+Live Events
+Active Markets
+Open Orders
+Matched Orders
+Paper Turnover
+Open Exposure
+System Health
+WebSocket Connections
+```
+
+Event management:
+
+```text
+Event
+ ├── Status
+ ├── Start time
+ ├── Competition
+ └── Markets
+       ├── Status
+       ├── Selections
+       └── Prices
+```
+
+Market management:
+
+```text
+Open
+Suspended
+Closed
+Settled
+```
+
+Simulator controls:
+
+```text
+Start Match
+Pause Match
+Resume Match
+Score Run
+Wicket
+Change Odds
+Suspend Market
+Reopen Market
+Finish Match
+Trigger Settlement
+```
+
+This is extremely important for development/testing.
+
+---
+
+# 28. DATA SIMULATOR
+
+Build a realistic cricket simulation.
+
+Example:
+
+```text
+England vs Pakistan
+
+England 157/9
+
+20 overs
+
+Current batsman:
+Joe Root
+
+Next event:
+Run / Boundary / Wicket / Dot Ball
+```
+
+The simulator should change:
+
+* score
+* wickets
+* over
+* batsmen
+* odds
+* market status
+
+The simulator should generate WebSocket events.
+
+Admin should be able to manually trigger events.
+
+---
+
+# 29. UI STATE MANAGEMENT
+
+Separate:
+
+### Server state
+
+Use TanStack Query.
+
+### Client state
+
+Use Zustand.
+
+Examples:
+
+```text
+Server state:
+events
+markets
+odds
+bets
+wallet
+
+Client state:
+selected odds
+bet slip
+sidebar
+modal
+filters
+UI preferences
+```
+
+Do not put everything into one global Redux-style store.
+
+---
+
+# 30. PERFORMANCE
+
+Target:
+
+* fast first load
+* lazy-loaded routes
+* code splitting
+* virtualized long market lists
+* memoized odds cells
+* efficient WebSocket updates
+* minimal unnecessary React renders
+* debounced search
+* optimized PostgreSQL indexes
+* Redis caching
+* connection pooling
+
+The event screen may contain hundreds of markets.
+
+It must remain responsive.
+
+---
+
+# 31. DESIGN SYSTEM
+
+Create reusable tokens:
+
+```text
+spacing
+radius
+typography
+shadows
+breakpoints
+colors
+transitions
+```
+
+Components:
+
+```text
+Button
+Input
+Select
+Modal
+Tabs
+Badge
+Card
+MarketCard
+OddsCell
+OddsGrid
+BetSlip
+BetRow
+EventCard
+SportSidebar
+StatusIndicator
+Toast
+DataTable
+```
+
+The Back/Lay odds cell should be reusable everywhere.
+
+Example:
+
+```text
+<OddsCell
+  side="BACK"
+  price={1.12}
+  availableSize={334337}
+  onSelect={...}
+/>
+```
+
+---
+
+# 32. UX DETAILS
+
+Implement:
+
+* odds flash/update animation
+* disabled state during suspension
+* clear LIVE indicator
+* skeleton loaders
+* empty states
+* error states
+* optimistic UI only where safe
+* confirmation feedback
+* sticky Bet Slip
+* collapsible markets
+* search
+* filters
+* sport navigation
+* mobile bottom navigation
+
+Avoid excessive animation.
+
+The interface should feel fast and professional.
+
+---
+
+# 33. PROJECT STRUCTURE
+
+Create:
+
+```text
+sports-exchange/
+│
+├── frontend/
+│
+├── backend/
+│
+├── worker/
+│
+├── simulator/
+│
+├── infrastructure/
+│
+├── docker/
+│
+├── tests/
+│
+├── docs/
+│
+├── docker-compose.yml
+├── .env.example
+├── README.md
+└── Makefile
+```
+
+---
+
+# 34. DOCKER
+
+Provide Dockerfiles for:
+
+```text
+frontend
+backend
+worker
+simulator
+```
+
+Docker Compose should run:
+
+```text
+frontend
+backend
+postgres
+redis
+worker
+simulator
+```
+
+One command should start the entire development environment.
+
+Example:
+
+```bash
+docker compose up --build
+```
+
+---
+
+# 35. DATABASE MIGRATIONS
+
+Use Alembic.
+
+Provide:
+
+```bash
+alembic upgrade head
+```
+
+Seed the database with:
+
+```text
+sports
+competitions
+events
+markets
+selections
+demo users
+demo balances
+```
+
+---
+
+# 36. DEMO USERS
+
+Create development users:
+
+```text
+demo-user
+demo-admin
+```
+
+The demo user gets simulated credits.
+
+The admin can control the simulator.
+
+Never use real payment information.
+
+---
+
+# 37. README
+
+The README must explain:
+
+1. Architecture
+2. Technology choices
+3. Local setup
+4. Environment variables
+5. Database migration
+6. Seed data
+7. Running frontend
+8. Running backend
+9. Running simulator
+10. WebSocket architecture
+11. Market model
+12. Order matching
+13. Wallet ledger
+14. Settlement
+15. Testing
+16. Monitoring
+17. Production deployment architecture
+
+Include architecture diagrams using Mermaid.
+
+---
+
+# 38. ARCHITECTURAL DOCUMENTATION
+
+Create:
+
+```text
+docs/
+  architecture.md
+  domain-model.md
+  websocket.md
+  matching-engine.md
+  wallet-ledger.md
+  settlement.md
+  security.md
+  observability.md
+  deployment.md
+  api.md
+```
+
+Explain WHY each architectural decision was made.
+
+---
+
+# 39. QUALITY REQUIREMENTS
+
+Do NOT produce:
+
+* fake buttons
+* placeholder APIs
+* TODO-only functionality
+* hard-coded market data
+* fake WebSocket code
+* fake database operations
+* giant files
+* duplicated components
+* business logic inside React components
+* business logic inside FastAPI routes
+* insecure balance manipulation
+* frontend-only calculations
+
+Every major button must actually work.
+
+Every important API must actually work.
+
+Every important screen must be connected to the backend.
+
+---
+
+# 40. IMPLEMENTATION STRATEGY
+
+Do NOT attempt to dump the entire project into one enormous response.
+
+Work incrementally.
+
+### STEP 1
+
+First produce:
+
+* architecture
+* domain model
+* database schema
+* API specification
+* WebSocket specification
+* frontend architecture
+* folder structure
+* technology decisions
+
+Then STOP and wait for approval.
+
+### STEP 2
+
+Implement backend foundation:
+
+* FastAPI
+* configuration
+* PostgreSQL
+* Alembic
+* authentication
+* models
+* repositories
+* services
+* tests
+
+### STEP 3
+
+Implement market engine:
+
+* sports
+* competitions
+* events
+* markets
+* selections
+* odds
+* liquidity
+* market state
+
+### STEP 4
+
+Implement matching engine:
+
+* BACK
+* LAY
+* order book
+* matching
+* partial matching
+* cancellation
+* suspension
+
+### STEP 5
+
+Implement wallet/ledger:
+
+* paper balance
+* reservation
+* exposure
+* settlement
+* transaction history
+
+### STEP 6
+
+Implement WebSocket:
+
+* live market updates
+* odds changes
+* bet updates
+* wallet updates
+* reconnect
+
+### STEP 7
+
+Implement React UI:
+
+* layout
+* sports navigation
+* home
+* event page
+* markets
+* odds
+* Bet Slip
+* My Bets
+* wallet
+
+### STEP 8
+
+Implement admin.
+
+### STEP 9
+
+Implement simulator.
+
+### STEP 10
+
+Implement complete testing.
+
+### STEP 11
+
+Implement observability.
+
+### STEP 12
+
+Implement Docker and production deployment documentation.
+
+---
+
+# 41. IMPORTANT DEVELOPMENT RULE
+
+Before writing code for any subsystem, explain:
+
+```text
+What problem are we solving?
+
+What is the domain concept?
+
+What is the data model?
+
+What is the API?
+
+What is the state machine?
+
+What are the failure scenarios?
+
+How does concurrency affect it?
+
+How is it tested?
+```
+
+Then implement it.
+
+---
+
+# 42. CODE QUALITY STANDARD
+
+Write code as if it will be reviewed by a principal engineer at a major technology company.
+
+Prefer:
+
+* clear abstractions
+* explicit types
+* small functions
+* dependency injection
+* domain services
+* repository pattern where useful
+* transaction boundaries
+* strong validation
+* structured logging
+* meaningful error codes
+* comprehensive tests
+
+Avoid unnecessary enterprise complexity.
+
+Use the simplest architecture that can genuinely support the requirements.
+
+---
+
+# 43. FINAL PRODUCT EXPECTATION
+
+At the end, I should be able to:
+
+```text
+Register
+   ↓
+Login
+   ↓
+Open Home
+   ↓
+Select Cricket
+   ↓
+Open England vs Pakistan
+   ↓
+See live markets
+   ↓
+See BACK/LAY prices
+   ↓
+See liquidity
+   ↓
+Click odds
+   ↓
+Bet Slip updates
+   ↓
+Enter paper stake
+   ↓
+Place paper order
+   ↓
+Order gets matched
+   ↓
+My Bets updates
+   ↓
+Simulator changes match state
+   ↓
+Odds change in real time
+   ↓
+Market suspends
+   ↓
+Market reopens
+   ↓
+Match finishes
+   ↓
+Settlement runs
+   ↓
+Paper wallet updates
+   ↓
+Ledger records transaction
+```
+
+Everything must actually function.
+
+---
+
+# 44. FIRST RESPONSE
+
+Do NOT start coding immediately.
+
+First give me:
+
+## A. System architecture diagram
+
+## B. Frontend architecture
+
+## C. Backend architecture
+
+## D. Database ER diagram
+
+## E. Domain model
+
+## F. Order matching flow
+
+## G. Wallet/ledger flow
+
+## H. Settlement flow
+
+## I. WebSocket architecture
+
+## J. Complete repository structure
+
+## K. Technology justification
+
+## L. Development roadmap
+
+## M. Major risks and concurrency problems
+
+Then wait for my instruction:
+
+**"START STEP 1"**
+
+When I say START STEP 1, begin implementing the actual project.
+
+Remember:
+
+**This is a paper/simulation sports exchange for engineering and UX development. Do not implement real-money gambling or payment functionality.**

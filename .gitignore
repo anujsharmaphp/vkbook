@@ -1,0 +1,21 @@
+# backend
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/dev.db
+backend/.env
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/*.local
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

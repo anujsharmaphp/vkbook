@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sports Exchange Simulator — Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161922;
+    --panel-border: #262b38;
+    --text: #e6e8ee;
+    --text-dim: #9aa3b5;
+    --accent: #5fb3ff;
+    --accent-soft: rgba(95,179,255,0.12);
+    --code-bg: #1c2029;
+    --back: #4fc3f7;
+    --lay: #f48fb1;
+    --table-border: #2a2f3d;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    line-height: 1.6;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+  nav.toc {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    padding: 28px 18px;
+    border-right: 1px solid var(--panel-border);
+    background: var(--panel);
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 0 0 12px 4px;
+  }
+  nav.toc a {
+    display: block;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.88rem;
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+  }
+  nav.toc a:hover { background: var(--accent-soft); color: var(--accent); }
+  main {
+    max-width: 900px;
+    padding: 48px 56px 120px;
+  }
+  header.doc-header {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  header.doc-header h1 {
+    font-size: 1.9rem;
+    margin: 0 0 8px;
+  }
+  .badge-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px;
+  }
+  .badge {
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+  }
+  .callout {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin: 18px 0;
+    color: var(--text);
+    font-size: 0.94rem;
+  }
+  section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  h2 {
+    font-size: 1.35rem;
+    margin: 0 0 4px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  h2 .letter {
+    color: var(--accent);
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  h3 { font-size: 1.05rem; color: var(--text); margin-top: 28px; }
+  p { color: var(--text); }
+  ul, ol { color: var(--text); padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: "SF Mono", Consolas, Menlo, monospace;
+  }
+  pre.block {
+    background: var(--code-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: "SF Mono", Consolas, Menlo, monospace;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: #c9d1e0;
+  }
+  pre.block code { background: none; padding: 0; }
+  .mermaid-wrap {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 18px;
+    overflow-x: auto;
+    margin: 12px 0;
+    border: 1px solid var(--panel-border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.88rem;
+  }
+  th, td {
+    border: 1px solid var(--table-border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--panel);
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+  .repo-tree {
+    font-family: "SF Mono", Consolas, Menlo, monospace;
+    font-size: 0.84rem;
+  }
+  .state-flow {
+    font-family: "SF Mono", Consolas, Menlo, monospace;
+    color: var(--accent);
+  }
+  footer.next-step {
+    margin-top: 60px;
+    padding: 20px 22px;
+    border: 1px dashed var(--panel-border);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+  footer.next-step strong { color: var(--accent); }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: relative; height: auto; }
+    main { padding: 32px 20px 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <a href="#a">A. System Architecture</a>
+  <a href="#b">B. Frontend Architecture</a>
+  <a href="#c">C. Backend Architecture</a>
+  <a href="#d">D. Database ER Diagram</a>
+  <a href="#e">E. Domain Model</a>
+  <a href="#f">F. Order Matching Flow</a>
+  <a href="#g">G. Wallet / Ledger Flow</a>
+  <a href="#h">H. Settlement Flow</a>
+  <a href="#i">I. WebSocket Architecture</a>
+  <a href="#j">J. Repository Structure</a>
+  <a href="#k">K. Technology Justification</a>
+  <a href="#l">L. Development Roadmap</a>
+  <a href="#m">M. Risks &amp; Concurrency</a>
+  <a href="#next">Next Step</a>
+</nav>
+
+<main>
+  <header class="doc-header">
+    <h1>Sports Exchange Simulator — Architecture</h1>
+    <p>Step 1 deliverable, per <code>Prompt.txt</code> Section 44. Paper-trading sports
+    exchange — all balances are simulated. No real-money deposits, withdrawals, or
+    wagering are implemented anywhere in this system.</p>
+    <div class="badge-row">
+      <span class="badge">React + TypeScript</span>
+      <span class="badge">FastAPI + Python</span>
+      <span class="badge">PostgreSQL</span>
+      <span class="badge">Redis</span>
+      <span class="badge">WebSockets</span>
+      <span class="badge">Docker Compose</span>
+    </div>
+  </header>
+
+  <div class="callout">
+    This document covers sections A–M. No application code has been written yet.
+    Implementation begins only after <strong>"START STEP 1"</strong> is given.
+  </div>
+
+  <section id="a">
+    <h2><span class="letter">A.</span>System Architecture Diagram</h2>
+    <div class="mermaid-wrap">
+      <pre class="mermaid">
+flowchart TB
+    subgraph Client["React / TypeScript Client"]
+        UI[UI: Home / Event / Market / Bet Slip / Admin]
+        WSClient[WebSocket Client]
+        HTTPClient[REST Client - TanStack Query]
+    end
+
+    subgraph Edge["Edge"]
+        LB[Load Balancer / Reverse Proxy]
+    end
+
+    subgraph Backend["FastAPI Backend"]
+        API[REST API Layer]
+        WSGW[WebSocket Gateway]
+        Auth[Auth Service - JWT]
+        Services["Domain Services (MarketService, OrderService, WalletService, SettlementService)"]
+        Engines["Engines (MarketEngine, MatchingEngine, SettlementEngine, WalletEngine)"]
+    end
+
+    subgraph Async["Async / Background"]
+        Worker[Background Workers - Celery/Arq]
+        Simulator[Simulation Engine - cricket/football/tennis]
+    end
+
+    subgraph Data["Data Layer"]
+        PG[(PostgreSQL - Source of Truth)]
+        Redis[(Redis - Hot state, pub/sub, cache)]
+    end
+
+    subgraph Obs["Observability"]
+        Prom[Prometheus]
+        Graf[Grafana]
+        Logs[Structured JSON Logs]
+    end
+
+    UI --> HTTPClient --> LB --> API
+    UI --> WSClient --> LB --> WSGW
+    API --> Auth
+    API --> Services --> Engines
+    Engines --> PG
+    Engines -- publish domain events --> Redis
+    Redis -- fanout --> WSGW --> WSClient
+    Simulator -- generates match/odds events --> Redis
+    Simulator --> Engines
+    Worker -- consumes events / settlement jobs --> Redis
+    Worker --> PG
+    Services --> Redis
+    API --> Prom
+    WSGW --> Prom
+    Worker --> Prom
+    Prom --> Graf
+    API --> Logs
+    Worker --> Logs
+      </pre>
+    </div>
+    <p><strong>Key principle:</strong> PostgreSQL is the single source of financial
+    truth. Redis is transient — hot market state, pub/sub fanout, caching, rate
+    limiting. Nothing financially authoritative lives only in Redis.</p>
+  </section>
+
+  <section id="b">
+    <h2><span class="letter">B.</span>Frontend Architecture</h2>
+    <p><strong>Stack:</strong> React 18, TypeScript, Vite, React Router, TanStack
+    Query (server state), Zustand (client/UI state), native WebSocket client with
+    reconnect logic, React Hook Form + Zod (validation).</p>
+    <h3>Layering</h3>
+    <pre class="block repo-tree">pages/            route-level composition, no business logic
+layouts/           AppShell, AuthLayout, AdminLayout
+features/&lt;domain&gt;  self-contained: components, hooks, api, store slice, types
+  auth/
+  sports/
+  events/
+  markets/
+  betslip/
+  bets/
+  wallet/
+  profile/
+  admin/
+design-system/     tokens + primitives (Button, Input, OddsCell, Card, ...)
+services/          low-level API + WebSocket clients (framework-agnostic)
+hooks/             cross-feature hooks (useWebSocketSubscription, useDebounce)
+store/             root Zustand store composition
+types/             shared TS types generated/mirrored from backend schemas
+utils/             pure helper functions (odds math, formatting)</pre>
+    <h3>State split</h3>
+    <ul>
+      <li><strong>Server state</strong> (events, markets, odds snapshots, bets,
+      wallet) → TanStack Query, hydrated via REST, kept live via WebSocket-driven
+      cache updates (<code>queryClient.setQueryData</code>) — not polling.</li>
+      <li><strong>Client/UI state</strong> (selected odds, bet slip draft,
+      sidebar/modal, filters) → Zustand, scoped per feature, not one global store.</li>
+    </ul>
+    <h3>Real-time integration pattern</h3>
+    <p>A single <code>WebSocketManager</code> service maintains one socket per scope
+    (<code>/ws/user</code>, <code>/ws/event/{id}</code>, <code>/ws/market/{id}</code>),
+    dedupes by event id + sequence number, and dispatches typed events into TanStack
+    Query cache updates. Components never touch the socket directly.</p>
+    <h3>Rendering performance</h3>
+    <p><code>OddsCell</code> is memoized and keyed by
+    <code>(selectionId, side, price, availableSize)</code>; market lists use
+    virtualization once market count is large; routes are code-split per feature.</p>
+  </section>
+
+  <section id="c">
+    <h2><span class="letter">C.</span>Backend Architecture</h2>
+    <p><strong>Stack:</strong> Python, FastAPI, SQLAlchemy (async) + Alembic,
+    Pydantic v2 schemas, PostgreSQL, Redis, WebSockets, a Redis-backed task queue
+    (Arq) for background work.</p>
+    <h3>Layering</h3>
+    <pre class="block repo-tree">api/          HTTP route handlers — thin, delegate to services, no business logic
+websocket/    WS route handlers, connection registry, auth handshake
+core/         cross-cutting: settings, logging, error types, middleware
+config/       environment/config loading (pydantic-settings)
+domain/       pure domain objects, value objects, state machines (no I/O)
+models/       SQLAlchemy ORM models
+repositories/ persistence access (query methods), one per aggregate
+services/     use-case orchestration: BetService, WalletService, MarketService,
+              SettlementService — transaction boundaries live here
+engines/
+  market_engine/      market/selection/price state transitions
+  matching_engine/    order book, BACK/LAY matching, partial fills
+  settlement_engine/  market settlement -> bet settlement -> ledger postings
+  wallet_engine/      balance, exposure, reservation math
+  simulation_engine/  synthetic match/odds generator
+events/       domain event definitions + publisher (Redis Streams)
+schemas/      Pydantic request/response DTOs
+security/     JWT, password hashing, RBAC dependencies
+observability/ structured logging, request/correlation IDs, metrics
+workers/      background job entrypoints (settlement sweep, simulator tick, etc.)</pre>
+    <div class="callout">Rule enforced throughout: route handlers only parse/validate
+    input, call one service method, and map the result/exception to an HTTP response.
+    All business logic, transaction boundaries, and locking live in
+    <code>services/</code> and <code>engines/</code>.</div>
+  </section>
+
+  <section id="d">
+    <h2><span class="letter">D.</span>Database ER Diagram</h2>
+    <div class="mermaid-wrap">
+      <pre class="mermaid">
+erDiagram
+    USERS ||--o{ WALLETS : has
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ BETS : owns
+    USERS }o--o{ ROLES : "has (user_roles)"
+    ROLES }o--o{ PERMISSIONS : "has (role_permissions)"
+
+    SPORTS ||--o{ COMPETITIONS : contains
+    COMPETITIONS ||--o{ EVENTS : contains
+    EVENTS ||--o{ MARKETS : contains
+    MARKET_TYPES ||--o{ MARKETS : classifies
+    MARKETS ||--o{ SELECTIONS : contains
+    SELECTIONS ||--o{ ORDERS : "priced against"
+
+    ORDERS ||--o{ ORDER_MATCHES : "matched via"
+    ORDER_MATCHES ||--|| BETS : "produces"
+    MARKETS ||--o{ SETTLEMENTS : "settled by"
+    SETTLEMENTS ||--o{ BETS : settles
+
+    WALLETS ||--o{ LEDGER_ENTRIES : records
+    BETS ||--o{ LEDGER_ENTRIES : "generates"
+    ORDERS ||--o{ LEDGER_ENTRIES : "reserves exposure via"
+
+    EVENTS ||--o{ SIMULATOR_EVENTS : "drives state via"
+    USERS ||--o{ AUDIT_LOGS : "acted by"
+    USERS ||--o{ NOTIFICATIONS : receives
+
+    USERS {
+        uuid id PK
+        string email
+        string password_hash
+        string status
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    WALLETS {
+        uuid id PK
+        uuid user_id FK
+        bigint balance_minor
+        bigint reserved_minor
+        int version
+        timestamptz updated_at
+    }
+    LEDGER_ENTRIES {
+        uuid id PK
+        uuid wallet_id FK
+        uuid ref_order_id FK
+        uuid ref_bet_id FK
+        string entry_type
+        bigint amount_minor
+        bigint balance_after_minor
+        string idempotency_key
+        timestamptz created_at
+    }
+    SPORTS { uuid id PK, string code, string name }
+    COMPETITIONS { uuid id PK, uuid sport_id FK, string name }
+    EVENTS { uuid id PK, uuid competition_id FK, string name, string status, timestamptz start_time }
+    MARKET_TYPES { uuid id PK, string code, string name, jsonb settlement_rule }
+    MARKETS { uuid id PK, uuid event_id FK, uuid market_type_id FK, string name, string status, int version }
+    SELECTIONS { uuid id PK, uuid market_id FK, string name, int display_order }
+    ORDERS {
+        uuid id PK
+        uuid user_id FK
+        uuid market_id FK
+        uuid selection_id FK
+        string side
+        numeric price
+        bigint stake_minor
+        bigint matched_minor
+        string status
+        string idempotency_key
+        int version
+        timestamptz created_at
+    }
+    ORDER_MATCHES {
+        uuid id PK
+        uuid taker_order_id FK
+        uuid maker_order_id FK
+        numeric matched_price
+        bigint matched_size_minor
+        timestamptz created_at
+    }
+    BETS {
+        uuid id PK
+        uuid user_id FK
+        uuid order_id FK
+        uuid market_id FK
+        uuid selection_id FK
+        string side
+        numeric price
+        bigint stake_minor
+        bigint liability_minor
+        string status
+        timestamptz created_at
+    }
+    SETTLEMENTS {
+        uuid id PK
+        uuid market_id FK
+        uuid winning_selection_id FK
+        string status
+        timestamptz settled_at
+    }
+    AUDIT_LOGS { uuid id PK, uuid user_id FK, string action, jsonb payload, timestamptz created_at }
+    NOTIFICATIONS { uuid id PK, uuid user_id FK, string type, jsonb payload, bool read, timestamptz created_at }
+    PROMOTIONS { uuid id PK, string title, string body, bool active }
+    SIMULATOR_EVENTS { uuid id PK, uuid event_id FK, string type, jsonb payload, timestamptz created_at }
+      </pre>
+    </div>
+    <ul>
+      <li>Money stored as <code>bigint</code> minor units (paise), never floats.</li>
+      <li><code>orders.version</code> / <code>markets.version</code> support
+      optimistic locking (Section 22).</li>
+      <li><code>ledger_entries.idempotency_key</code> is unique — enforces
+      Section 21 at the DB level.</li>
+    </ul>
+  </section>
+
+  <section id="e">
+    <h2><span class="letter">E.</span>Domain Model</h2>
+    <p class="state-flow">Sport → Competition → Event → Market → Selection → Price(level)</p>
+    <ul>
+      <li><strong>Sport</strong>: top-level category (Cricket, Football, Tennis).
+      Not hard-coded in the frontend — the sports menu is data-driven from
+      <code>GET /api/v1/sports</code>.</li>
+      <li><strong>Competition</strong>: grouping within a sport (e.g. "Test Matches").</li>
+      <li><strong>Event</strong>: a specific match (e.g. "England vs Pakistan"), owns
+      lifecycle status (<code>SCHEDULED</code>, <code>LIVE</code>,
+      <code>SUSPENDED</code>, <code>COMPLETED</code>).</li>
+      <li><strong>Market</strong>: a bettable question on an event, typed via
+      <code>MarketType</code> (<code>MATCH_ODDS</code>, <code>BOOKMAKER</code>,
+      <code>FANCY</code>, <code>PLAYER_RUNS</code>, <code>OVER_UNDER</code>,
+      <code>WICKETS</code>, ...). Each <code>MarketType</code> carries a
+      <code>settlement_rule</code> describing how to resolve it generically, so new
+      market types don't require new settlement code paths for the common cases
+      (winner-takes, over/under threshold).</li>
+      <li><strong>Selection</strong>: an outcome within a market (e.g. "England",
+      "Over 165.5").</li>
+      <li><strong>Price</strong>: not a stored row per se — it is the current
+      best-of-book view derived from live <code>orders</code> for a
+      <code>(market, selection, side)</code>, held in Redis for fast reads and
+      reconstructable from PostgreSQL as the source of truth.</li>
+    </ul>
+    <p>This hierarchy is fully data-driven: adding a new sport or market type is a
+    data operation (seed/admin action), not a code change.</p>
+  </section>
+
+  <section id="f">
+    <h2><span class="letter">F.</span>Order Matching Flow</h2>
+    <div class="mermaid-wrap">
+      <pre class="mermaid">
+sequenceDiagram
+    participant U as User (Client)
+    participant API as OrderService (API)
+    participant ME as MatchingEngine
+    participant DB as PostgreSQL
+    participant EB as Event Bus (Redis Streams)
+    participant WS as WebSocket Gateway
+
+    U->>API: POST /api/v1/orders (Idempotency-Key, market, selection, side, price, stake)
+    API->>API: validate request, recompute stake/liability server-side
+    API->>DB: BEGIN, SELECT market/selection FOR UPDATE (or version check)
+    API->>ME: submit(order)
+    ME->>DB: lock opposing price levels (row-level or optimistic version)
+    ME->>ME: match against resting orders at price/price-better
+    alt fully or partially matched
+        ME->>DB: insert order_matches, update matched orders, insert bets
+    end
+    ME->>DB: persist resulting order (OPEN/PARTIALLY_MATCHED/MATCHED)
+    API->>DB: COMMIT
+    API->>EB: publish ORDER_PLACED, ORDER_MATCHED/PARTIALLY_MATCHED, ODDS_UPDATED
+    EB->>WS: fanout to subscribed clients
+    WS-->>U: live order book + bet slip state update
+    API-->>U: 201 Created (order + resulting bet state)
+      </pre>
+    </div>
+    <h3>State machine</h3>
+    <p>Enforced only in <code>MatchingEngine</code>/<code>BetService</code>:</p>
+    <pre class="block state-flow">CREATED → PENDING → ACCEPTED → OPEN → PARTIALLY_MATCHED → MATCHED
+                                  ↓             ↓
+                              CANCELLED     SETTLED / VOID
+ACCEPTED → REJECTED (validation/suspended market)</pre>
+  </section>
+
+  <section id="g">
+    <h2><span class="letter">G.</span>Wallet / Ledger Flow</h2>
+    <div class="mermaid-wrap">
+      <pre class="mermaid">
+flowchart LR
+    Order[Order Placement] -->|reserve exposure| Reserve[WalletEngine.reserve]
+    Reserve -->|debit reserved, insert ledger_entry EXPOSURE_HOLD| Ledger[(ledger_entries)]
+    Reserve --> Wallet[(wallets: balance, reserved)]
+    Match[Order Matched] -->|adjust reservation to actual liability| Adjust[WalletEngine.adjust_reservation]
+    Adjust --> Ledger
+    Cancel[Order Cancelled/Expired] -->|release unmatched reservation| Release[WalletEngine.release]
+    Release --> Ledger
+    Settle[Bet Settled] -->|credit winnings or realize loss| Settle_Fn[WalletEngine.settle]
+    Settle_Fn -->|insert ledger_entry SETTLEMENT_CREDIT/DEBIT| Ledger
+    Settle_Fn --> Wallet
+      </pre>
+    </div>
+    <p>Every balance mutation is: <code>BEGIN → SELECT wallet FOR UPDATE → compute
+    new balance → INSERT ledger_entry (immutable, append-only) → UPDATE
+    wallet.balance/reserved → COMMIT</code>. The wallet's
+    <code>balance</code>/<code>reserved</code> columns are a materialized,
+    always-derivable cache of the ledger — the ledger is the true record.
+    <code>available_to_bet = balance - reserved</code>, shown to the user as
+    Balance / Exposure / Available.</p>
+  </section>
+
+  <section id="h">
+    <h2><span class="letter">H.</span>Settlement Flow</h2>
+    <div class="mermaid-wrap">
+      <pre class="mermaid">
+sequenceDiagram
+    participant Admin as Admin/Simulator
+    participant SE as SettlementEngine
+    participant DB as PostgreSQL
+    participant WE as WalletEngine
+    participant EB as Event Bus
+    participant WS as WebSocket Gateway
+
+    Admin->>SE: trigger settlement(market_id, winning_selection_id)
+    SE->>DB: BEGIN, lock market (status -> SETTLING)
+    SE->>DB: fetch all MATCHED/PARTIALLY_MATCHED bets for market
+    loop each bet
+        SE->>SE: resolve outcome via MarketType.settlement_rule
+        SE->>WE: settle(bet) -> credit/debit wallet, write ledger_entry
+        SE->>DB: update bet.status = SETTLED (or VOID)
+    end
+    SE->>DB: insert settlements row, market.status = SETTLED
+    SE->>DB: COMMIT
+    SE->>EB: publish BET_SETTLED (per bet), BALANCE_UPDATED (per user)
+    EB->>WS: fanout
+    WS-->>Admin: dashboard updates
+      </pre>
+    </div>
+    <p>Settlement is idempotent: a <code>settlements</code> row keyed by
+    <code>market_id</code> plus a per-bet <code>status</code> guard means re-running
+    settlement for an already-settled market is a no-op, not a double-payout.</p>
+  </section>
+
+  <section id="i">
+    <h2><span class="letter">I.</span>WebSocket Architecture</h2>
+    <pre class="block">Market/Settlement/Wallet Engines
+        ↓ publish domain event
+   Redis Streams (per-topic: event:{id}, market:{id}, user:{id})
+        ↓ consumed by
+   WebSocket Gateway (stateless, horizontally scalable)
+        ↓ fanout to subscribed connections
+   React Client (WebSocketManager)</pre>
+    <ul>
+      <li>Channels: <code>/ws/events/{event_id}</code>,
+      <code>/ws/markets/{market_id}</code>, <code>/ws/user</code> (auth-scoped:
+      balance, own bet/order updates).</li>
+      <li>Client subscribes/unsubscribes dynamically as the user navigates.</li>
+      <li>Every event carries a monotonically increasing <code>sequence</code> per
+      topic; the client drops duplicates and detects gaps — a detected gap triggers
+      a REST resync (<code>GET .../order-book</code>) rather than trusting a possibly
+      stale stream.</li>
+      <li>Reconnect uses exponential backoff with jitter; on reconnect the client
+      resyncs via REST before resuming live updates, so a dropped connection never
+      leaves stale prices displayed as live.</li>
+      <li>Heartbeat ping/pong detects dead connections server-side and frees
+      resources.</li>
+      <li>The gateway is stateless w.r.t. domain state — it only holds subscription
+      registries — so it scales horizontally behind the load balancer.</li>
+    </ul>
+  </section>
+
+  <section id="j">
+    <h2><span class="letter">J.</span>Complete Repository Structure</h2>
+    <pre class="block repo-tree">sports-exchange/
+├── frontend/
+│   └── src/
+│       ├── app/            # router, providers, entry
+│       ├── components/     # shared, non-design-system composites
+│       ├── features/
+│       │   ├── auth/ sports/ events/ markets/ betslip/
+│       │   ├── bets/ wallet/ profile/ admin/
+│       ├── hooks/
+│       ├── services/       # api client, ws client
+│       ├── store/
+│       ├── types/
+│       ├── utils/
+│       ├── pages/
+│       ├── layouts/
+│       └── design-system/
+│
+├── backend/
+│   └── app/
+│       ├── api/ core/ config/ domain/ models/ repositories/ services/
+│       ├── engines/
+│       │   ├── market_engine/ matching_engine/ settlement_engine/
+│       │   ├── wallet_engine/ simulation_engine/
+│       ├── websocket/ workers/ events/ schemas/ security/ observability/
+│       └── tests/
+│
+├── worker/                 # background job entrypoints (settlement sweep, cleanup)
+├── simulator/               # standalone simulator process (can also run in-process)
+├── infrastructure/          # IaC (Terraform) for eventual AWS deployment
+├── docker/                  # per-service Dockerfiles
+├── tests/                   # cross-service / e2e (Playwright)
+├── docs/
+│   ├── architecture.md      # this document (source)
+│   ├── architecture.html    # this rendered page
+│   ├── domain-model.md
+│   ├── websocket.md
+│   ├── matching-engine.md
+│   ├── wallet-ledger.md
+│   ├── settlement.md
+│   ├── security.md
+│   ├── observability.md
+│   ├── deployment.md
+│   └── api.md
+├── docker-compose.yml
+├── .env.example
+├── README.md
+└── Makefile</pre>
+  </section>
+
+  <section id="k">
+    <h2><span class="letter">K.</span>Technology Justification</h2>
+    <table>
+      <thead><tr><th>Choice</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>FastAPI</td><td>async-native, Pydantic validation, auto OpenAPI docs, good WebSocket support</td></tr>
+        <tr><td>PostgreSQL</td><td>ACID guarantees for financial ledger data; row locking/<code>FOR UPDATE</code>; mature</td></tr>
+        <tr><td>Redis</td><td>sub-millisecond hot-state reads, native pub/sub + Streams for event fanout, doubles as rate-limit store</td></tr>
+        <tr><td>SQLAlchemy (async) + Alembic</td><td>explicit migrations, mature ORM, works cleanly with <code>FOR UPDATE</code>/versioning</td></tr>
+        <tr><td>React + TypeScript + Vite</td><td>fast dev loop, strong typing across a data-driven domain model</td></tr>
+        <tr><td>TanStack Query</td><td>purpose-built for server-state caching + WebSocket-driven cache patching, avoids manual polling</td></tr>
+        <tr><td>Zustand</td><td>minimal boilerplate for UI-only state; keeps server state out of a global reducer</td></tr>
+        <tr><td>Redis Streams (not raw pub/sub)</td><td>consumer groups + replay give at-least-once delivery, needed since financial events must not be silently dropped</td></tr>
+        <tr><td>Arq (Redis-backed task queue)</td><td>lightweight async worker matching the async FastAPI stack, avoids introducing a second broker at this scale</td></tr>
+        <tr><td>Docker Compose (local) → ECS/K8s-compatible (prod)</td><td>one-command local dev now, without foreclosing container-orchestrated AWS deployment later</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="l">
+    <h2><span class="letter">L.</span>Development Roadmap</h2>
+    <p>Maps directly to <code>Prompt.txt</code> Section 40:</p>
+    <ol>
+      <li><strong>Step 1 (this document):</strong> architecture, domain model, schema, API/WS spec — awaiting approval.</li>
+      <li><strong>Step 2:</strong> backend foundation — FastAPI app, config, PostgreSQL, Alembic, auth, base models/repos/services, initial tests.</li>
+      <li><strong>Step 3:</strong> market engine — sports/competitions/events/markets/selections/odds/liquidity, all data-driven.</li>
+      <li><strong>Step 4:</strong> matching engine — BACK/LAY order book, partial matching, cancellation, suspension.</li>
+      <li><strong>Step 5:</strong> wallet/ledger — reservation, exposure, settlement postings, transaction history.</li>
+      <li><strong>Step 6:</strong> WebSocket layer — live odds/order/wallet updates, reconnect/resync.</li>
+      <li><strong>Step 7:</strong> React UI — layout, navigation, home, event page, markets, odds grid, bet slip, my bets, wallet.</li>
+      <li><strong>Step 8:</strong> admin panel.</li>
+      <li><strong>Step 9:</strong> simulator (cricket first, then football/tennis).</li>
+      <li><strong>Step 10:</strong> full test suite (backend pytest, frontend Vitest/RTL/Playwright, concurrency tests).</li>
+      <li><strong>Step 11:</strong> observability (structured logs, Prometheus metrics, Grafana dashboards).</li>
+      <li><strong>Step 12:</strong> Docker Compose + production deployment docs (AWS-shaped, IaC).</li>
+    </ol>
+    <p>Each step opens with problem/domain/data-model/API/state-machine/
+    failure-scenario/concurrency/testing notes before any code is written.</p>
+  </section>
+
+  <section id="m">
+    <h2><span class="letter">M.</span>Major Risks and Concurrency Problems</h2>
+    <ol>
+      <li><strong>Double-spend on shared liquidity.</strong> Two users consuming the
+      same resting order simultaneously. Mitigation: matching happens inside a
+      single DB transaction with <code>SELECT ... FOR UPDATE</code> on the resting
+      order (or optimistic <code>version</code> check with retry-on-conflict), so
+      total matched size can never exceed available size. Covered by dedicated
+      concurrency tests.</li>
+      <li><strong>Non-idempotent retries.</strong> A client retry (network blip) on
+      place-order/cancel-order/settle/wallet-mutate must not double-execute.
+      Mitigation: <code>Idempotency-Key</code> header, unique constraint on
+      <code>(user_id, idempotency_key)</code> per operation table, first-writer-wins
+      with cached response replay for duplicates.</li>
+      <li><strong>Stale odds acted upon.</strong> Client displays a price that has
+      since moved or been suspended. Mitigation: backend re-validates market status
+      and current price/liquidity at order-submission time — never trusts the price
+      sent by the client as authoritative for matching, only as the limit price.</li>
+      <li><strong>WebSocket message loss/out-of-order delivery.</strong> Mitigation:
+      per-topic sequence numbers, gap detection triggers REST resync; Redis Streams
+      consumer groups give at-least-once delivery to the WS gateway.</li>
+      <li><strong>Settlement run twice / partially failed mid-run.</strong>
+      Mitigation: settlement is transactional per market with a
+      <code>settlements</code> row as a completion marker, and idempotent bet-status
+      guards so a retried or resumed settlement run cannot double-pay a bet.</li>
+      <li><strong>Wallet balance drift from ledger.</strong> Mitigation:
+      <code>wallets.balance</code>/<code>reserved</code> are treated as a cache of
+      the ledger; a periodic reconciliation job recomputes balance from
+      <code>ledger_entries</code> and alerts on mismatch rather than silently
+      trusting the cached column forever.</li>
+      <li><strong>Floating-point money errors.</strong> Mitigation: all monetary
+      and stake values stored and computed as integer minor units (paise), never
+      <code>float</code>/<code>double</code>, in both backend and frontend
+      calculation code.</li>
+      <li><strong>Hundreds of markets/selections causing UI jank.</strong>
+      Mitigation: virtualized lists, memoized <code>OddsCell</code>, targeted
+      WebSocket cache patches (not full re-fetch) per update.</li>
+      <li><strong>Suspended-market race.</strong> An order in flight when a market
+      suspends. Mitigation: market status is checked and locked as part of the same
+      transaction as order matching, so a suspend that lands mid-match either wins
+      (order rejected) or loses (already committed) atomically — never a
+      half-applied state.</li>
+    </ol>
+  </section>
+
+  <footer class="next-step" id="next">
+    <p>This satisfies Section 44 (A–M). No implementation code has been written.
+    Reply <strong>"START STEP 1"</strong> to begin Step 2 of the roadmap (backend
+    foundation), or request changes to any section above first.</p>
+  </footer>
+</main>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "default",
+    securityLevel: "loose",
+    er: { useMaxWidth: true },
+    flowchart: { useMaxWidth: true, htmlLabels: true },
+    sequence: { useMaxWidth: true }
+  });
+</script>
+</body>
+</html>
