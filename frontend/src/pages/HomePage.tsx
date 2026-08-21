@@ -6,12 +6,28 @@ import { fetchEvents } from "../features/catalog/api";
 import { useCatalogLookup } from "../features/catalog/useCatalogLookup";
 import { SportSidebar } from "../features/catalog/SportSidebar";
 import { EventCard } from "../features/catalog/EventCard";
+import { PromoBanners } from "../features/catalog/PromoBanners";
 import { BetSlip } from "../features/trading/BetSlip";
 import { MyBetsPanel } from "../features/trading/MyBetsPanel";
 
 export function HomePage() {
   const [selectedSportId, setSelectedSportId] = useState<string | null>(null);
   const { sports, competitionInfoById } = useCatalogLookup();
+
+  function scrollToInPlay() {
+    document.getElementById("in-play-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function handleBrowseLive() {
+    const cricket = sports.find((s) => s.code.toUpperCase() === "CRICKET");
+    setSelectedSportId(cricket?.id ?? null);
+    scrollToInPlay();
+  }
+
+  function handleBrowseAll() {
+    setSelectedSportId(null);
+    scrollToInPlay();
+  }
 
   const eventsQuery = useQuery({
     queryKey: ["events"],
@@ -61,7 +77,9 @@ export function HomePage() {
 
       <div className="col">
         <div className="col-scroll">
-          <div className="section-head">
+          <PromoBanners onBrowseLive={handleBrowseLive} onBrowseAll={handleBrowseAll} />
+
+          <div className="section-head" id="in-play-section">
             <span className="section-title">In-Play</span>
             <div className="rule" />
             <span className="section-count">{liveEvents.length} live</span>

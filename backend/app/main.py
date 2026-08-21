@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -20,10 +21,12 @@ from app.core.middleware import RequestContextMiddleware
 from app.db.session import AsyncSessionFactory
 from app.models.match_state import MatchSimStatus, MatchState
 from app.services.simulation_runner import start_simulation_task
+from app.services.simulation_service import SimulationEngine
 from app.websocket.routes import router as websocket_router
 
 settings = get_settings()
 configure_logging(settings.log_level)
+logger = logging.getLogger("app.main")
 
 
 @asynccontextmanager
@@ -35,8 +38,24 @@ async def lifespan(_app: FastAPI):
         live_states = await session.execute(
             select(MatchState).where(MatchState.status == MatchSimStatus.LIVE)
         )
-        for state in live_states.scalars().all():
+        resumed = live_states.scalars().all()
+        for state in resumed:
             start_simulation_task(state.event_id)
+
+    # If the process woke up (or redeployed) with nothing live — e.g. the
+    # previous match finished while the free-tier instance was asleep and
+    # nothing was around to auto-restart it — kick off a fresh demo match
+    # so there's always something live to show.
+    if not resumed:
+        async with AsyncSessionFactory() as session:
+            try:
+                new_state = await SimulationEngine(session).start_next_demo_match()
+            except Exception:
+                logger.exception("failed to auto-start a demo match on boot")
+                new_state = None
+        if new_state is not None:
+            start_simulation_task(new_state.event_id)
+
     yield
 
 

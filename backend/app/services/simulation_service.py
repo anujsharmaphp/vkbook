@@ -1,17 +1,22 @@
+import datetime
 import random
 import uuid
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ConflictError, NotFoundError
 from app.events.publisher import EventPublisher, get_event_publisher
 from app.events.types import EventType
+from app.models.competition import Competition
 from app.models.event import Event, EventStatus
 from app.models.market import Market, MarketStatus
+from app.models.market_type import MarketType
 from app.models.match_state import MatchSimStatus, MatchState
 from app.models.selection import Selection
 from app.models.simulator_event import SimulatorEvent, SimulatorEventType
+from app.models.sport import Sport
 from app.models.user import User
 from app.repositories.event_repository import EventRepository
 from app.repositories.market_repository import MarketRepository
@@ -36,6 +41,19 @@ _BALL_OUTCOMES = ["DOT", "DOT", "DOT", "ONE", "ONE", "TWO", "FOUR", "FOUR", "SIX
 _BALL_RUNS = {"DOT": 0, "ONE": 1, "TWO": 2, "FOUR": 4, "SIX": 6, "WICKET": 0}
 _QUOTE_OFFSETS = [Decimal("0.01"), Decimal("0.02"), Decimal("0.03")]
 _MIN_QUOTE_PRICE = Decimal("1.01")
+
+# Rotated through by start_next_demo_match() so a demo always has a live
+# match running: a finished event's market is already SETTLED (money paid
+# out), so "restarting" reuses a brand-new Event/Market instead of ever
+# trying to reopen a settled one.
+_AUTO_DEMO_TEAM_POOL = [
+    ("England", "Pakistan"),
+    ("Australia", "India"),
+    ("South Africa", "New Zealand"),
+    ("Sri Lanka", "West Indies"),
+    ("Bangladesh", "Afghanistan"),
+    ("Ireland", "Netherlands"),
+]
 
 
 class SimulationEngine:
@@ -100,6 +118,46 @@ class SimulationEngine:
         await self._publish_state(state)
         await self._publish_event_status(event)
         return state
+
+    async def start_next_demo_match(self) -> MatchState | None:
+        """Creates a brand-new cricket fixture and starts the simulator on
+        it. Used to keep a demo continuously live: reuses the same cricket
+        competition seeded rows already sit under, so the new event shows up
+        in the existing catalog rather than needing its own sport/competition."""
+        competition_result = await self.session.execute(
+            select(Competition).join(Sport, Competition.sport_id == Sport.id).where(
+                Sport.code == "CRICKET"
+            ).limit(1)
+        )
+        competition = competition_result.scalar_one_or_none()
+        if competition is None:
+            return None
+
+        market_type_result = await self.session.execute(
+            select(MarketType).where(MarketType.code == "MATCH_ODDS")
+        )
+        match_odds_type = market_type_result.scalar_one_or_none()
+        if match_odds_type is None:
+            return None
+
+        team_a, team_b = random.choice(_AUTO_DEMO_TEAM_POOL)
+        event = Event(
+            competition_id=competition.id,
+            name=f"{team_a} vs {team_b}",
+            start_time=datetime.datetime.now(datetime.UTC),
+        )
+        self.session.add(event)
+        await self.session.flush()
+
+        market = Market(event_id=event.id, market_type_id=match_odds_type.id, name="Match Odds")
+        market.selections = [
+            Selection(name=team_a, display_order=0),
+            Selection(name=team_b, display_order=1),
+        ]
+        self.session.add(market)
+        await self.session.commit()
+
+        return await self.start_match(event.id)
 
     async def pause_match(self, event_id: uuid.UUID) -> MatchState:
         state = await self._get_state_or_404(event_id)

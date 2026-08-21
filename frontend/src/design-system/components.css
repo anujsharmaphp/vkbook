@@ -133,6 +133,38 @@
   width: 6px; height: 6px; border-radius: 50%; background: var(--live); flex: none;
   animation: pulse 2s infinite;
 }
+.sport-row.soon { opacity: 0.5; cursor: default; }
+.soon-badge {
+  font-size: 8.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-muted); border: 1px solid var(--border); border-radius: 20px; padding: 2px 6px; flex: none;
+}
+
+/* ---------- promo banners ---------- */
+.promo-banners { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+.promo-card {
+  border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
+  border: 1px solid var(--border); min-height: 132px;
+}
+.promo-card.accent-back {
+  background: linear-gradient(135deg, var(--back-accent), var(--back-border-strong));
+  border-color: var(--back-border-strong); color: var(--back-on-accent);
+}
+.promo-card.accent-lay {
+  background: linear-gradient(135deg, var(--lay-accent), var(--lay-border-strong));
+  border-color: var(--lay-border-strong); color: var(--back-on-accent);
+}
+.promo-card.accent-neutral { background: var(--bg-panel); color: var(--text-primary); }
+.promo-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
+.promo-title { font-size: 16.5px; font-weight: 700; line-height: 1.25; }
+.promo-sub { font-size: 12px; opacity: 0.9; line-height: 1.4; flex: 1; }
+.promo-card .btn { align-self: flex-start; }
+.promo-card.accent-back .btn, .promo-card.accent-lay .btn {
+  background: var(--back-on-accent); color: var(--text-primary); border-color: transparent;
+}
+.promo-card.accent-back .btn:hover, .promo-card.accent-lay .btn:hover { filter: brightness(0.95); }
+@media (max-width: 1080px) {
+  .promo-banners { grid-template-columns: 1fr; }
+}
 
 /* ---------- section heading ---------- */
 .section-head { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
