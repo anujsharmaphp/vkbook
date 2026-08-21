@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     # New paper-wallet accounts are funded with this many minor units (paise).
     initial_demo_balance_minor: int = Field(default=10_000_000, alias="INITIAL_DEMO_BALANCE_MINOR")
 
+    # Seeded by app.db.seed on every boot (idempotent) — see Section 36:
+    # "Create development users: demo-user, demo-admin." The admin password
+    # defaults to something obviously-a-placeholder for local dev; set a
+    # real one via env in any shared/deployed environment.
+    demo_admin_email: str = Field(default="demo-admin@vkbook.app", alias="DEMO_ADMIN_EMAIL")
+    demo_admin_password: str = Field(default="change-me-admin-1", alias="DEMO_ADMIN_PASSWORD")
+    demo_user_email: str = Field(default="demo-user@vkbook.app", alias="DEMO_USER_EMAIL")
+    demo_user_password: str = Field(default="change-me-user-1", alias="DEMO_USER_PASSWORD")
+
     @property
     def cors_allow_origins(self) -> list[str]:
         origins = self.cors_allow_origins_raw.split(",")
