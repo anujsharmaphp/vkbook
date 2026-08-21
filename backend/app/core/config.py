@@ -21,19 +21,22 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(default=15, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_days: int = Field(default=7, alias="REFRESH_TOKEN_EXPIRE_DAYS")
 
-    cors_allow_origins: list[str] = Field(
-        default_factory=lambda: ["http://localhost:5173"], alias="CORS_ALLOW_ORIGINS"
+    # Kept as a plain string field (not list[str]) deliberately: pydantic-
+    # settings JSON-decodes any list/complex-typed env value *before* field
+    # validators run, so a plain "http://a,http://b" env var blows up with a
+    # JSONDecodeError before `_split_csv` below ever sees it. Parsing it
+    # ourselves via the `cors_allow_origins` property sidesteps that.
+    cors_allow_origins_raw: str = Field(
+        default="http://localhost:5173", alias="CORS_ALLOW_ORIGINS"
     )
 
     # New paper-wallet accounts are funded with this many minor units (paise).
     initial_demo_balance_minor: int = Field(default=10_000_000, alias="INITIAL_DEMO_BALANCE_MINOR")
 
-    @field_validator("cors_allow_origins", mode="before")
-    @classmethod
-    def _split_csv(cls, value: object) -> object:
-        if isinstance(value, str):
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
-        return value
+    @property
+    def cors_allow_origins(self) -> list[str]:
+        origins = self.cors_allow_origins_raw.split(",")
+        return [origin.strip() for origin in origins if origin.strip()]
 
     @field_validator("database_url", mode="after")
     @classmethod
