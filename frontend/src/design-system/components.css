@@ -140,20 +140,15 @@
 }
 
 /* ---------- promo banners ---------- */
-.promo-stack { margin-bottom: 24px; }
-.promo-hero {
-  width: 100%; aspect-ratio: 16 / 7; max-height: 260px; border-radius: 10px;
-  background-color: oklch(0.16 0.03 255); background-image: none;
-  background-size: contain; background-repeat: no-repeat; background-position: center;
-  border: 1px solid var(--border);
-  display: flex; align-items: flex-end; justify-content: center;
-  padding: 16px; margin-bottom: 12px;
-}
-.promo-hero-btn { min-width: 180px; }
-.promo-banners { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+.promo-banners { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
 .promo-card {
   border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
   border: 1px solid var(--border); min-height: 132px;
+}
+.promo-card.promo-image-card {
+  background-color: oklch(0.16 0.03 255);
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  justify-content: flex-end;
 }
 .promo-card.accent-lay {
   background: linear-gradient(135deg, var(--lay-accent), var(--lay-border-strong));
@@ -168,9 +163,12 @@
   background: var(--back-on-accent); color: var(--text-primary); border-color: transparent;
 }
 .promo-card.accent-lay .btn:hover { filter: brightness(0.95); }
+.promo-card.promo-image-card .btn {
+  background: var(--back-on-accent); color: var(--text-primary); border-color: transparent;
+}
+.promo-card.promo-image-card .btn:hover { filter: brightness(0.95); }
 @media (max-width: 1080px) {
   .promo-banners { grid-template-columns: 1fr; }
-  .promo-hero { aspect-ratio: 4 / 3; max-height: 320px; }
 }
 
 /* ---------- section heading ---------- */
