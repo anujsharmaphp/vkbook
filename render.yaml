@@ -37,6 +37,18 @@ services:
         value: "7"
       - key: INITIAL_DEMO_BALANCE_MINOR
         value: "10000000"
+      # Fixed (not generated) on purpose: this is a paper-money demo, and a
+      # known admin/user login you can actually use beats a secure one you'd
+      # have to go dig out of the Render dashboard. Change these if that
+      # tradeoff stops making sense.
+      - key: DEMO_ADMIN_EMAIL
+        value: demo-admin@vkbook.app
+      - key: DEMO_ADMIN_PASSWORD
+        value: change-me-admin-1
+      - key: DEMO_USER_EMAIL
+        value: demo-user@vkbook.app
+      - key: DEMO_USER_PASSWORD
+        value: change-me-user-1
       # Set this to your Vercel frontend URL after the first frontend
       # deploy (e.g. https://vk-exchange.vercel.app), then redeploy this
       # service — CORS rejects everything else by default.
