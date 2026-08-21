@@ -20,10 +20,10 @@ export function PromoBanners({ onBrowseLive, onBrowseAll }: Props) {
         </button>
       </div>
 
-      <div className="promo-card accent-lay">
-        <div className="promo-eyebrow">Multi-Sport</div>
-        <div className="promo-title">Football, Tennis &amp; More</div>
-        <div className="promo-sub">Back or lay across every market on the exchange, all in one book.</div>
+      <div
+        className="promo-card promo-image-card"
+        style={{ backgroundImage: "url(/promo-football.png)" }}
+      >
         <button type="button" className="btn btn-block" onClick={onBrowseAll}>
           Browse Markets
         </button>

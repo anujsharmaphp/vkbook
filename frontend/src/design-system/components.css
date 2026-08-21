@@ -150,19 +150,11 @@
   background-size: cover; background-position: center; background-repeat: no-repeat;
   justify-content: flex-end;
 }
-.promo-card.accent-lay {
-  background: linear-gradient(135deg, var(--lay-accent), var(--lay-border-strong));
-  border-color: var(--lay-border-strong); color: var(--back-on-accent);
-}
 .promo-card.accent-neutral { background: var(--bg-panel); color: var(--text-primary); }
 .promo-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; }
 .promo-title { font-size: 16.5px; font-weight: 700; line-height: 1.25; }
 .promo-sub { font-size: 12px; opacity: 0.9; line-height: 1.4; flex: 1; }
 .promo-card .btn { align-self: flex-start; }
-.promo-card.accent-lay .btn {
-  background: var(--back-on-accent); color: var(--text-primary); border-color: transparent;
-}
-.promo-card.accent-lay .btn:hover { filter: brightness(0.95); }
 .promo-card.promo-image-card .btn {
   background: var(--back-on-accent); color: var(--text-primary); border-color: transparent;
 }
