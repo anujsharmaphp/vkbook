@@ -131,6 +131,14 @@ class MatchingService:
                 matched_size_minor=match_size,
             )
             self.session.add(order_match)
+            # order_matches and bets have no ORM relationship() between them
+            # (plain FK columns only), so the unit-of-work can't infer that
+            # the Bet rows below depend on this row and may batch their
+            # INSERTs ahead of it. SQLite never catches the resulting FK
+            # violation (it doesn't enforce foreign keys by default);
+            # Postgres does, on every match. Flushing here forces the
+            # order_matches row to actually exist before anything references it.
+            await self.session.flush()
 
             order.matched_minor += match_size
             maker.matched_minor += match_size
