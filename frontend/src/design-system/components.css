@@ -180,14 +180,14 @@
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 9px;
-  padding: 16px 18px;
-  margin-bottom: 12px;
+  padding: 11px 16px;
+  margin-bottom: 8px;
   display: block;
   color: inherit;
 }
 .event-card:hover { border-color: var(--back-border); }
 .event-card-top {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px;
 }
 .event-meta { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .competition { font-size: 11px; color: var(--text-muted); }
@@ -216,7 +216,7 @@
 /* ---------- price cell (shared by preview + full grid) ---------- */
 .price-cell {
   display: flex; flex-direction: column; align-items: center; gap: 1px; border-radius: 6px;
-  padding: 6px 10px; min-width: 64px; border: none; font-family: inherit;
+  padding: 4px 10px; min-width: 64px; border: none; font-family: inherit;
 }
 .price-cell .p { font-family: "JetBrains Mono", monospace; font-size: 13.5px; font-weight: 700; }
 .price-cell .s { font-family: "JetBrains Mono", monospace; font-size: 9.5px; }

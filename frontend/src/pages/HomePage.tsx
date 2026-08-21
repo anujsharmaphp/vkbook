@@ -102,7 +102,7 @@ export function HomePage() {
             ))
           )}
 
-          <div className="section-head" style={{ marginTop: 26 }}>
+          <div className="section-head" style={{ marginTop: 18 }}>
             <span className="section-title">Upcoming</span>
             <div className="rule" />
             <span className="section-count">{upcomingEvents.length}</span>
