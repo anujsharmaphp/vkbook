@@ -49,8 +49,10 @@ services:
         value: demo-user@vkbook.app
       - key: DEMO_USER_PASSWORD
         value: change-me-user-1
-      # Set this to your Vercel frontend URL after the first frontend
-      # deploy (e.g. https://vk-exchange.vercel.app), then redeploy this
-      # service — CORS rejects everything else by default.
+      # Committed directly (not left as a localhost placeholder) because
+      # Render's Blueprint sync resets any dashboard-edited value for a key
+      # declared here back to whatever's in this file on every push that
+      # touches render.yaml — so a placeholder here silently clobbers a
+      # manually-set production value the next time this file changes.
       - key: CORS_ALLOW_ORIGINS
-        value: http://localhost:5173
+        value: http://localhost:5173,https://vkbook.vercel.app
