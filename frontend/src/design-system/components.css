@@ -10,6 +10,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
+  overflow-x: auto;
 }
 .brand { display: flex; align-items: baseline; gap: 8px; }
 .brand-mark {
@@ -79,6 +80,17 @@
   font-size: 11px;
   font-weight: 600;
   color: var(--header-text-secondary);
+  flex: none;
+}
+@media (max-width: 640px) {
+  .topbar { gap: 8px; padding: 0 10px; }
+  .brand-tag { display: none; }
+  .clock { display: none; }
+  .topnav-item { padding: 8px 10px; }
+  .balance-chip { padding: 5px 10px 5px 9px; gap: 6px; }
+  .balance-chip .label { display: none; }
+  .balance-chip .value { font-size: 12.5px; }
+  .icon-btn { width: 30px; height: 30px; flex: none; }
 }
 
 /* ---------- page/layout ---------- */
@@ -161,6 +173,7 @@
 .promo-card.promo-image-card .btn:hover { filter: brightness(0.95); }
 @media (max-width: 1080px) {
   .promo-banners { grid-template-columns: 1fr; }
+  .promo-card.promo-image-card { min-height: 200px; background-position: center top; }
 }
 
 /* ---------- section heading ---------- */
@@ -353,13 +366,15 @@
 .mh-spacer { flex: 1; }
 
 .market-body { padding: 2px 18px 16px; }
-.odds-grid-header { display: grid; grid-template-columns: 1fr repeat(3, minmax(0, 1fr)) repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+.market-grid-scroll { overflow-x: auto; }
+.odds-grid-header { display: grid; grid-template-columns: 1fr repeat(3, minmax(0, 1fr)) repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; min-width: 520px; }
 .odds-grid-header .lbl { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; }
 .back-lbl { grid-column: 2 / span 3; color: var(--back-accent); }
 .lay-lbl { grid-column: 5 / span 3; color: var(--lay-accent); }
 .odds-row {
   display: grid; grid-template-columns: 1fr repeat(3, minmax(0, 1fr)) repeat(3, minmax(0, 1fr));
   gap: 6px; align-items: center; padding: 9px 0; border-top: 1px solid var(--border-subtle);
+  min-width: 520px;
 }
 .odds-row:first-child { border-top: none; }
 .sel-name { font-size: 13.5px; font-weight: 600; }

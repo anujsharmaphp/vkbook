@@ -69,49 +69,51 @@ export function MarketSection({ market }: Props) {
 
       {expanded && (
         <div className="market-body">
-          <div className="odds-grid-header">
-            <div />
-            <div className="lbl back-lbl">Back</div>
-            <div className="lbl lay-lbl">Lay</div>
+          <div className="market-grid-scroll">
+            <div className="odds-grid-header">
+              <div />
+              <div className="lbl back-lbl">Back</div>
+              <div className="lbl lay-lbl">Lay</div>
+            </div>
+            {market.selections.map((selection) => {
+              const book = orderBookQuery.data?.selections.find((s) => s.selection_id === selection.id);
+              const backLevels = padLevels(book?.back, DEPTH);
+              const layLevels = padLevels(book?.lay, DEPTH);
+              return (
+                <div className="odds-row" key={selection.id}>
+                  <div className="sel-name">{selection.name}</div>
+                  {backLevels.map((level, idx) => (
+                    <button
+                      key={`back-${idx}`}
+                      type="button"
+                      disabled={!isOpen || !level}
+                      className={cellClass("BACK", selection.id, idx, level)}
+                      onClick={() => handlePick(selection.id, "BACK", level)}
+                    >
+                      <span className="p mono">{level ? level.price : "—"}</span>
+                      <span className="s mono">
+                        {level ? formatMinorCompact(level.available_size_minor) : ""}
+                      </span>
+                    </button>
+                  ))}
+                  {layLevels.map((level, idx) => (
+                    <button
+                      key={`lay-${idx}`}
+                      type="button"
+                      disabled={!isOpen || !level}
+                      className={cellClass("LAY", selection.id, idx, level)}
+                      onClick={() => handlePick(selection.id, "LAY", level)}
+                    >
+                      <span className="p mono">{level ? level.price : "—"}</span>
+                      <span className="s mono">
+                        {level ? formatMinorCompact(level.available_size_minor) : ""}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
           </div>
-          {market.selections.map((selection) => {
-            const book = orderBookQuery.data?.selections.find((s) => s.selection_id === selection.id);
-            const backLevels = padLevels(book?.back, DEPTH);
-            const layLevels = padLevels(book?.lay, DEPTH);
-            return (
-              <div className="odds-row" key={selection.id}>
-                <div className="sel-name">{selection.name}</div>
-                {backLevels.map((level, idx) => (
-                  <button
-                    key={`back-${idx}`}
-                    type="button"
-                    disabled={!isOpen || !level}
-                    className={cellClass("BACK", selection.id, idx, level)}
-                    onClick={() => handlePick(selection.id, "BACK", level)}
-                  >
-                    <span className="p mono">{level ? level.price : "—"}</span>
-                    <span className="s mono">
-                      {level ? formatMinorCompact(level.available_size_minor) : ""}
-                    </span>
-                  </button>
-                ))}
-                {layLevels.map((level, idx) => (
-                  <button
-                    key={`lay-${idx}`}
-                    type="button"
-                    disabled={!isOpen || !level}
-                    className={cellClass("LAY", selection.id, idx, level)}
-                    onClick={() => handlePick(selection.id, "LAY", level)}
-                  >
-                    <span className="p mono">{level ? level.price : "—"}</span>
-                    <span className="s mono">
-                      {level ? formatMinorCompact(level.available_size_minor) : ""}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            );
-          })}
         </div>
       )}
     </div>
